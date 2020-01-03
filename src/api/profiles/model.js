@@ -9,6 +9,9 @@ const profilesSchema = new Schema({
   },
   address: {
     type: String
+  },
+  addressLower: {
+    type: String
   }
 }, {
   timestamps: true,

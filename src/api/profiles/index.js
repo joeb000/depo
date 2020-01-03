@@ -1,16 +1,16 @@
 import { Router } from 'express'
 import { middleware as query } from 'querymen'
 import { middleware as body } from 'bodymen'
-import { create, index, show, update, destroy } from './controller'
+import { create, index, show, update, getAddressData, destroy, newProfile } from './controller'
 import { schema } from './model'
-import { S3 } from 'aws-sdk'
+//import { S3 } from 'aws-sdk'
 import Formidable from 'formidable'
 import fs  from 'fs'
 const path = require('path');
 
 export Profiles, { schema } from './model'
 
-const s3 = new S3({ apiVersion: '2006-03-01' });
+//const s3 = new S3({ apiVersion: '2006-03-01' });
 
 const router = new Router()
 const { name, image, address } = schema.tree
@@ -47,7 +47,7 @@ router.post('/',
   body({ name, image, address }),
   create)
 
-const upload = (req, res) => {
+const upload = (req, res, next) => {
   const form = new Formidable();
   form.uploadDir = process.env.UPLOAD_DIR
   console.log(req.headers)
@@ -66,20 +66,27 @@ const upload = (req, res) => {
 
     let newpath = path.format({
       dir: process.env.UPLOAD_DIR,
-      base: fields.address,
+      base: fields.address.toLowerCase(),
     });
     process.env.UPLOAD_DIR
 
     fs.renameSync(files.picture.path, newpath)
 
-    res.send("got it");
+    req.profile = {
+      name: fields.name,
+      address: fields.address,
+      addressLower: fields.address.toLowerCase(),
+      image: fields.address.toLowerCase()
+    }
+    next()
   });
 
   //res.status(200).send("FCK")
 }
 
 router.post('/upload',
-  upload)
+  upload,
+  newProfile)
 
 
 /**
@@ -94,6 +101,10 @@ router.post('/upload',
 router.get('/',
   query(),
   index)
+
+
+router.get('/address/:address',
+getAddressData)
 
 /**
  * @api {get} /profiles/:id Retrieve profiles

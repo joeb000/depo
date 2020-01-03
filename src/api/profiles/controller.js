@@ -7,6 +7,26 @@ export const create = ({ bodymen: { body } }, res, next) =>
     .then(success(res, 201))
     .catch(next)
 
+export const newProfile = (req, res, next) => {
+  return Profiles.create(req.profile)
+  .then((profiles) => profiles.view(true))
+  .then(success(res, 201))
+  .catch(next)
+}
+
+export const getAddressData = async (req, res, next) => {
+  console.log(req.params)
+  try {
+    let p = await Profiles.findOne({addressLower: req.params.address.toLowerCase()})
+    console.log(p)
+    res.send(p)
+  } catch (error) {
+    console.log(error)
+    next()
+  }
+}
+
+
 export const index = ({ querymen: { query, select, cursor } }, res, next) =>
   Profiles.count(query)
     .then(count => Profiles.find(query, select, cursor)
